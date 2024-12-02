@@ -9,13 +9,45 @@ trigger:
 pool:
   name: PoolRunners
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '20.x'
-  displayName: 'Install Node.js'
+stages:
 
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+# Stage 1: Install Node.js and Dependencies
+- stage: Install
+  displayName: 'Install Stage'
+  jobs:
+  - job: Install
+    displayName: 'Install Node.js and Dependencies'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+      displayName: 'Install Node.js'
+
+    - task: Cache@2
+      inputs:
+        key: 'npm | "$(Agent.OS)" | package-lock.json'
+        path: $(Build.SourcesDirectory)/node_modules
+        cacheHitVar: CACHE_RESTORED
+      displayName: 'Cache node_modules'
+
+    - script: |
+        npm ci
+      displayName: 'Install dependencies'
+
+    - script: |
+        npm run lint
+      displayName: 'Lint code'
+
+    - script: |
+        npm run build
+        cp -R dist/* $(Build.ArtifactStagingDirectory)/
+      displayName: 'Build and prepare artifacts'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: $(Build.ArtifactStagingDirectory)
+        artifactName: 'drop'
+      displayName: 'Publish build artifacts'
+
+
+
