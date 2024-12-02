@@ -7,7 +7,7 @@ trigger:
 - master
 
 pool:
-  name: vmubuntu
+  name: PoolRunners
 
 steps:
 - task: NodeTool@0
