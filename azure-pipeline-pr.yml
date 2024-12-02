@@ -40,7 +40,7 @@ stages:
 
     - script: |
         npm run build
-        cp -R dist/* $(Build.ArtifactStagingDirectory)/
+        cp -R .next/* $(Build.ArtifactStagingDirectory)/
       displayName: 'Build and prepare artifacts'
 
     - task: PublishBuildArtifacts@1
