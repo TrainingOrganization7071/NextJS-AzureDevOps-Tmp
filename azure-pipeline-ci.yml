@@ -1,0 +1,94 @@
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- feat/create-azurepipeline
+
+pool:
+  name: PoolRunners
+
+variables:
+  IMAGE_NAME: 'fouadallaoui/nextjsbaseapp'
+
+stages:
+
+# Stage 1: Install Node.js and Dependencies
+- stage: Install
+  displayName: 'Install Stage'
+  jobs:
+  - job: Install
+    displayName: 'Install Node.js and Dependencies'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+      displayName: 'Install Node.js'
+
+    - task: Cache@2
+      inputs:
+        key: 'npm | "$(Agent.OS)" | package-lock.json'
+        path: $(Build.SourcesDirectory)/node_modules
+        cacheHitVar: CACHE_RESTORED
+      displayName: 'Cache node_modules'
+
+    - script: |
+        npm ci
+      displayName: 'Install dependencies'
+
+    - script: |
+        npm run lint
+      displayName: 'Lint code'
+
+    - script: |
+        npm run build
+        cp -R .next/* $(Build.ArtifactStagingDirectory)/
+      displayName: 'Build and prepare artifacts'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: $(Build.ArtifactStagingDirectory)
+        artifactName: 'drop'
+      displayName: 'Publish build artifacts'
+
+
+# Docker Build & Push
+- stage: BuildImage
+  displayName: 'Build Docker Image'
+  dependsOn: Install  # Ensures this stage depends on the Install stage.
+  jobs:
+  - job: DockerBuild
+    displayName: 'Build Docker Image'
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'DockerHub'  # Reference your DockerHub => Service connection name.
+        repository: '$(IMAGE_NAME)'  # Correct variable reference for the image name.
+        command: 'build'  #(Docker@2 uses "build").
+        Dockerfile: '**/Dockerfile'  # File path to the Dockerfile.
+      displayName: 'Build the Docker image'
+
+  - job: DockerPush
+    dependsOn: DockerBuild
+    displayName: 'Push Docker Image'
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'DockerHub'  # Reference the service connection for DockerHub.
+        repository: '$(IMAGE_NAME)'
+        command: 'push'
+      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))  # Push only if build succeeds and it's not a PR.
+      displayName: 'Push the Docker image to DockerHub'
+      
+    - script: |
+        docker rmi $(IMAGE_NAME):$(Build.BuildId) || echo "Image already deleted"
+      displayName: 'Delete local Docker image'
+      condition: succeeded()
+
+
+
+
+
+
+
