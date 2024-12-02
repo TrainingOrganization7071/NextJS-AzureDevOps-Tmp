@@ -4,7 +4,12 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
-- feat/create-azurepipeline
+- none
+
+pr:
+  branches:
+    include:
+      - feat/create-azurepipeline
 
 pool:
   name: PoolRunners
