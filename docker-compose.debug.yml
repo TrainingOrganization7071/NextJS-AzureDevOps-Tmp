@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-      target: deps
+      target: builder
     environment:
       - NODE_ENV=development
     ports:
