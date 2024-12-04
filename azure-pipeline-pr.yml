@@ -10,6 +10,10 @@ pr:
   branches:
     include:
       - feat/create-azurepipeline
+  path:
+    exclude:
+    - '**/docs/**'
+    - README.md
 
 pool:
   name: PoolRunners

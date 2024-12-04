@@ -11,7 +11,10 @@ pool:
   name: PoolRunners
 
 variables:
+  # Global variables
   IMAGE_NAME: 'fouadallaoui/nextjsbaseapp'
+  NODE_VERSION: '20.x'
+  npm_config_cache: $(Pipeline.Workspace)/.npmcache
 
 stages:
 
@@ -24,7 +27,7 @@ stages:
     steps:
     - task: NodeTool@0
       inputs:
-        versionSpec: '20.x'
+        versionSpec: $(NODE_VERSION)
       displayName: 'Install Node.js'
 
     - task: Cache@2
@@ -54,7 +57,7 @@ stages:
       displayName: 'Publish build artifacts'
 
 
-# Docker Build & Push
+#Stage 2: Docker Build & Push
 - stage: BuildImage
   displayName: 'Build Docker Image'
   dependsOn: Install  # Ensures this stage depends on the Install stage.
@@ -86,10 +89,5 @@ stages:
         docker rmi $(IMAGE_NAME):$(Build.BuildId) || echo "Image already deleted"
       displayName: 'Delete local Docker image'
       condition: succeeded()
-
-
-
-
-
 
 
