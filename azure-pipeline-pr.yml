@@ -59,4 +59,26 @@ stages:
       displayName: 'Publish build artifacts'
 
 
+########### PR Review Stage ###########
 
+# Stage 2: Aprove the pull request
+
+- stage: PRReview
+  dependsOn: Install
+  displayName: 'PR Review Stage'
+  condition: eq(variables['Build.Reason'], 'PullRequest')
+  jobs:
+  - job: PRReview
+    displayName: 'Review and Approve PR'
+    steps:
+    - script: |
+        echo "Validating PR..."
+        echo "Branch: $(Build.SourceBranch)"
+      displayName: 'Validate PR branch'
+    
+    - task: ManualValidation@0
+      inputs:
+        instructions: 'Please review the pull request changes and approve or reject.'
+        onTimeout: 'reject'
+        timeout: '0:30:00' # Timeout for 30 minutes
+      displayName: 'Manual PR Review'
