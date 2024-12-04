@@ -1,5 +1,5 @@
 trigger:
-- master
+- feat/create-azurepipeline
 
 pool:
   name: PoolRunners
