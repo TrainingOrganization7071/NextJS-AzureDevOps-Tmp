@@ -10,6 +10,9 @@ pr:
   branches:
     include:
       - feat/create-azurepipeline
+  paths:
+    include:
+      - '**/*.js'
 
 pool:
   name: PoolRunners
