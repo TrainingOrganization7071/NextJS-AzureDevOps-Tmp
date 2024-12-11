@@ -12,7 +12,9 @@ pool:
 
 variables:
   # Global variables
-  IMAGE_NAME: 'fouadallaoui/nextjsbaseapp'
+  ACR_NAME: 'myacr12369874'
+  IMAGE_NAME: 'nextjsbaseapp'
+  IMAGE_TAG: $(Build.BuildId)
   NODE_VERSION: '20.x'
   npm_config_cache: $(Pipeline.Workspace)/.npmcache
 
@@ -90,4 +92,30 @@ stages:
       displayName: 'Delete local Docker image'
       condition: succeeded()
 
+# This stage builds a Docker image and pushes it to the Azure Container Registry (ACR). 
+- stage: DockerBuildAndPush
+  displayName: 'Docker Build and Push Stage'
+  dependsOn: BuildImage  # Depends on the successful completion of the Build stage.
+  jobs:
+  - job: DockerBuildPush
+    displayName: 'Build and Push Docker Image'
+    steps:
+    # Login to Azure using the pipeline's managed identity and authenticate with ACR
+    - script: |
+        az login --identity  # Authenticate with Azure using a managed identity.
+        az acr login --name $(ACR_NAME)  # Login to ACR.
+      displayName: 'Login to Azure and Authenticate with ACR'
 
+    # Build the Docker image and push it to ACR
+    - script: |
+        docker build -t $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(IMAGE_TAG) .  # Build Docker image.
+        docker push $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(IMAGE_TAG)  # Push Docker image to ACR.
+      workingDirectory: $(Build.SourcesDirectory)/core/microservices/nestjs-microtemplate
+      displayName: 'Build and Push Docker Image to ACR'
+
+    # Cleanup local Docker images to free up space
+    - script: |
+        docker rmi $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(IMAGE_TAG) || echo "Image already deleted"
+      workingDirectory: $(Build.SourcesDirectory)/core/microservices/nestjs-microtemplate
+      displayName: 'Cleanup local Docker image'
+      condition: succeeded()  # Only execute this step if the previous steps succeed.      
