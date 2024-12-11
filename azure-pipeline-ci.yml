@@ -60,42 +60,42 @@ stages:
 
 
 #Stage 2: Docker Build & Push
-- stage: BuildImage
-  displayName: 'Build Docker Image'
-  #dependsOn: Install  # Ensures this stage depends on the Install stage.
-  jobs:
-  - job: DockerBuild
-    displayName: 'Build Docker Image'
-    steps:
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'DockerHub'  # Reference your DockerHub => Service connection name.
-        repository: '$(IMAGE_NAME)'  # Correct variable reference for the image name.
-        command: 'build'  #(Docker@2 uses "build").
-        Dockerfile: '**/Dockerfile'  # File path to the Dockerfile.
-      displayName: 'Build the Docker image'
-
-  - job: DockerPush
-    dependsOn: DockerBuild
-    displayName: 'Push Docker Image'
-    steps:
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'DockerHub'  # Reference the service connection for DockerHub.
-        repository: '$(IMAGE_NAME)'
-        command: 'push'
-      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))  # Push only if build succeeds and it's not a PR.
-      displayName: 'Push the Docker image to DockerHub'
-      
-    - script: |
-        docker rmi $(IMAGE_NAME):$(Build.BuildId) || echo "Image already deleted"
-      displayName: 'Delete local Docker image'
-      condition: succeeded()
+#- stage: BuildImage
+#  displayName: 'Build Docker Image'
+#  #dependsOn: Install  # Ensures this stage depends on the Install stage.
+#  jobs:
+#  - job: DockerBuild
+#    displayName: 'Build Docker Image'
+#    steps:
+#    - task: Docker@2
+#      inputs:
+#        containerRegistry: 'DockerHub'  # Reference your DockerHub => Service connection name.
+#        repository: '$(IMAGE_NAME)'  # Correct variable reference for the image name.
+#        command: 'build'  #(Docker@2 uses "build").
+#        Dockerfile: '**/Dockerfile'  # File path to the Dockerfile.
+#      displayName: 'Build the Docker image'
+#
+#  - job: DockerPush
+#    dependsOn: DockerBuild
+#    displayName: 'Push Docker Image'
+#    steps:
+#    - task: Docker@2
+#      inputs:
+#        containerRegistry: 'DockerHub'  # Reference the service connection for DockerHub.
+#        repository: '$(IMAGE_NAME)'
+#        command: 'push'
+#      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))  # Push only if build succeeds and it's not a PR.
+#      displayName: 'Push the Docker image to DockerHub'
+#      
+#    - script: |
+#        docker rmi $(IMAGE_NAME):$(Build.BuildId) || echo "Image already deleted"
+#      displayName: 'Delete local Docker image'
+#      condition: succeeded()
 
 # This stage builds a Docker image and pushes it to the Azure Container Registry (ACR). 
 - stage: DockerBuildAndPush
   displayName: 'Docker Build and Push Stage'
-  dependsOn: BuildImage  # Depends on the successful completion of the Build stage.
+  #dependsOn: BuildImage  # Depends on the successful completion of the Build stage.
   jobs:
   - job: DockerBuildPush
     displayName: 'Build and Push Docker Image'
@@ -105,8 +105,7 @@ stages:
         containerRegistry: 'ACR'
         repository: '$(IMAGE_NAME)'
         command: 'buildAndPush'
-        Dockerfile: 'core/microservices/nestjs-microtemplate/Dockerfile'
-        context: 'core/microservices/nestjs-microtemplate'
+        Dockerfile: '**/Dockerfile'
         tags: |
           $(IMAGE_TAG)
       displayName: 'Build and Push Docker Image to ACR'  
