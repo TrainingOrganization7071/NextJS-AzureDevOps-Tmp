@@ -62,7 +62,7 @@ stages:
 #Stage 2: Docker Build & Push
 - stage: BuildImage
   displayName: 'Build Docker Image'
-  dependsOn: Install  # Ensures this stage depends on the Install stage.
+  #dependsOn: Install  # Ensures this stage depends on the Install stage.
   jobs:
   - job: DockerBuild
     displayName: 'Build Docker Image'
