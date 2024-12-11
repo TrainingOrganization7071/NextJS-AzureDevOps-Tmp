@@ -100,22 +100,13 @@ stages:
   - job: DockerBuildPush
     displayName: 'Build and Push Docker Image'
     steps:
-    # Login to Azure using the pipeline's managed identity and authenticate with ACR
-    - script: |
-        az login --identity  # Authenticate with Azure using a managed identity.
-        az acr login --name $(ACR_NAME)  # Login to ACR.
-      displayName: 'Login to Azure and Authenticate with ACR'
-
-    # Build the Docker image and push it to ACR
-    - script: |
-        docker build -t $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(IMAGE_TAG) .  # Build Docker image.
-        docker push $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(IMAGE_TAG)  # Push Docker image to ACR.
-      workingDirectory: $(Build.SourcesDirectory)/core/microservices/nestjs-microtemplate
-      displayName: 'Build and Push Docker Image to ACR'
-
-    # Cleanup local Docker images to free up space
-    - script: |
-        docker rmi $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(IMAGE_TAG) || echo "Image already deleted"
-      workingDirectory: $(Build.SourcesDirectory)/core/microservices/nestjs-microtemplate
-      displayName: 'Cleanup local Docker image'
-      condition: succeeded()  # Only execute this step if the previous steps succeed.      
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'ACR'
+        repository: '$(IMAGE_NAME)'
+        command: 'buildAndPush'
+        Dockerfile: 'core/microservices/nestjs-microtemplate/Dockerfile'
+        context: 'core/microservices/nestjs-microtemplate'
+        tags: |
+          $(IMAGE_TAG)
+      displayName: 'Build and Push Docker Image to ACR'  
