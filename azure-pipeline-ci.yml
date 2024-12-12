@@ -39,6 +39,79 @@ stages:
 
 
 
+## Stage 4: Docker Build and Push
+# This stage builds a Docker image and pushes it to the Azure Container Registry (ACR).
+#- stage: DockerBuildAndPush
+#  displayName: 'Docker Build and Push Stage'
+#  dependsOn: Build  # Depends on the successful completion of the Build stage.
+#  jobs:
+#  - job: DockerBuildPush
+#    displayName: 'Build and Push Docker Image'
+#    steps:
+#    # Build and Push the Docker image using the Docker@2 task
+#    - task: Docker@2
+#      inputs:
+#        containerRegistry: 'RG-Dev-ConnWorkers-AKS'  # Azure DevOps service connection with managed identity.
+#        repository: '$(IMAGE_NAME)'  # Docker image name.
+#        command: 'buildAndPush'  # Build and push the Docker image.
+#        Dockerfile: 'core/microservices/nestjs-microtemplate/Dockerfile'  # Path to the Dockerfile.
+#        context: 'core/microservices/nestjs-microtemplate'  # Build context for the Docker image.
+#        tags: |
+#          $(IMAGE_TAG)  # Tag for the Docker image.
+#      displayName: 'Build and Push Docker Image to ACR'
+#
+#    # Cleanup local Docker images to free up space
+#    - script: |
+#        docker rmi $(ACR_NAME).azurecr.io/$(IMAGE_NAME):$(IMAGE_TAG) || echo "Image already deleted"
+#      workingDirectory: $(Build.SourcesDirectory)/core/microservices/nestjs-microtemplate
+#      displayName: 'Cleanup local Docker image'
+#      condition: succeeded()  # Only execute this step if the previous steps succeed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
